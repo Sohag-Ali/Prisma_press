@@ -7,6 +7,8 @@ import { prisma } from "./lib/prisma";
 import bcrypt from "bcryptjs";
 import { userRouter } from "./modules/users/user.route";
 import { authRouter } from "./modules/auth/auth.route";
+import { postRouter } from "./modules/post/post.route";
+import { commentRouter } from "./modules/comments/comment.route";
 
 
 
@@ -28,5 +30,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/posts", postRouter);
+app.use("/api/comments", commentRouter);
 
 export default app;
