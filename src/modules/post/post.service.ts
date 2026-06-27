@@ -32,48 +32,53 @@ const getAllPosts = async () => {
 
 const getPostById = async (postId: string) => {
 
-    await prisma.post.update({
-        where: {
-            id: postId
-        },
-        data: {
-            views: {
-                increment: 1
-            }
-        },
-
-    });
-    
-    // throw new Error("Post not found");
-
-    const post = await prisma.post.findUniqueOrThrow({
-        where: {
-            id: postId
-        },
-        include: {
-            author: {
-                omit: {
-                    password: true
-                }
-            },
-            comments: {
+    const transactionResult = await prisma.$transaction(
+        async (tx) => {
+            await tx.post.update({
                 where: {
-                    status: CommentStatus.APPROVED
+                    id: postId
                 },
-                orderBy: {
-                    createdAt: "desc"
+                data: {
+                    views: {
+                        increment: 1
+                    }
                 }
-            },
-            _count: {
-                select: {
-                    comments: true
+            });
+
+            // throw new Error("Test error");
+
+            const post = await tx.post.findUniqueOrThrow({
+                where: {
+                    id: postId
+                },
+                include: {
+                    author: {
+                        omit: {
+                            password: true
+                        }
+                    },
+                    comments: {
+                        where: {
+                            status: CommentStatus.APPROVED
+                        },
+                        orderBy: {
+                            createdAt: "desc"
+                        }
+                    },
+                    _count: {
+                        select: {
+                            comments: true
+                        }
+                    }
                 }
-            }
+            });
+            return post;
+
         }
-    });
+    )
 
+    return transactionResult;
 
-    return post;
 }
 
 const getMyPosts = async (authorId: string) => {
