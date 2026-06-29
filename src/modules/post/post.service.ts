@@ -1,4 +1,4 @@
-import { CommentStatus } from "../../../generated/prisma/enums";
+import { CommentStatus, PostStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { ICreatePostPayload, IUpdatePostPayload } from "./post.interface"
 
@@ -18,6 +18,20 @@ const createPost = async (payload: ICreatePostPayload, userId: string) => {
 const getAllPosts = async () => {
 
     const posts = await prisma.post.findMany({
+        // where: {
+        //     title: "My 8th Post",
+
+        // },
+
+
+        // searching or parsing the data
+
+        where: {
+            content: {
+                contains: "sohag",
+                mode: "insensitive"
+            }
+        },
         include: {
             author: {
                 omit: {
@@ -151,17 +165,43 @@ const deletePost = async (postId: string, authorId: string, isAdmin: boolean) =>
 }
 
 const getPostStats = async () => {
-    const totalPosts = await prisma.post.count();
-    const totalViews = await prisma.post.aggregate({
-        _sum: {
-            views: true
-        }
-    });
+    const transcationResult = await prisma.$transaction(
+        async (tx) => {
 
-    return {
-        totalPosts,
-        totalViews: totalViews._sum.views || 0
-    };
+            const [totalPosts,
+                totalPublishedPosts,
+                totalDraftPosts,
+                totalArchivedPosts,
+                totalComments,
+                totalApprovedComments,
+                totalPendingComments,
+                totalRejectedComments,
+                totalPostViewsAggregate] = await Promise.all([
+                    await tx.post.count(),
+                    await tx.post.count({ where: { status: PostStatus.PUBLISHED } }),
+                    await tx.post.count({ where: { status: PostStatus.DRAFT } }),
+                    await tx.post.count({ where: { status: PostStatus.ARCHIVED } }),
+                    await tx.comment.count(),
+                    await tx.comment.count({ where: { status: CommentStatus.APPROVED } }),
+                    await tx.comment.count({ where: { status: CommentStatus.PENDING } }),
+                    await tx.comment.count({ where: { status: CommentStatus.REJECTED } }),
+                    await tx.post.aggregate({ _sum: { views: true } })
+                ]);
+
+            return {
+                totalPosts,
+                totalPublishedPosts,
+                totalDraftPosts,
+                totalArchivedPosts,
+                totalComments,
+                totalApprovedComments,
+                totalPendingComments,
+                totalRejectedComments,
+                totalViews: totalPostViewsAggregate._sum.views || 0
+            }
+        }
+    )
+    return transcationResult;
 }
 
 
