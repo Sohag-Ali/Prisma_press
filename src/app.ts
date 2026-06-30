@@ -1,14 +1,15 @@
 import cookieParser from "cookie-parser";
-import express, { Application, Request, Response } from "express";
+import express, { Application, NextFunction, Request, Response } from "express";
 import cors from "cors";
 import config from "./config";
-import httpStatus from "http-status";
-import { prisma } from "./lib/prisma";
-import bcrypt from "bcryptjs";
 import { userRouter } from "./modules/users/user.route";
 import { authRouter } from "./modules/auth/auth.route";
 import { postRouter } from "./modules/post/post.route";
-import {commentRoutes } from "./modules/comments/comment.route";
+import { commentRoutes } from "./modules/comments/comment.route";
+
+import { notFound } from "./middleware/notFounds";
+
+import { globalErrorHandler } from "./middleware/globalErrorHandeler";
 
 
 
@@ -32,5 +33,10 @@ app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/posts", postRouter);
 app.use("/api/comments", commentRoutes)
+
+app.use(notFound);
+
+app.use(globalErrorHandler);
+
 
 export default app;
