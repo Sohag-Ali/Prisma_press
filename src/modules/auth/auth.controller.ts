@@ -1,60 +1,59 @@
 import { NextFunction, Request, Response } from "express";
+import httpStatus from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
-import httpStatus from "http-status";
 import { authService } from "./auth.service";
 
-const loginUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+const loginUser = catchAsync(async (req : Request, res : Response, next : NextFunction) => {
     const payload = req.body;
 
-    const { user, accessToken, refreshToken } = await authService.loginUser(payload);
+    const {accessToken, refreshToken} = await authService.loginUser(payload);
 
     res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: false, // Set to true in production
-        sameSite: "none",
-        maxAge: 1000 * 60 * 60 * 24 , // 1 day
-    });
+        httpOnly : true,
+        secure : false,
+        sameSite : "none",
+        maxAge : 1000 * 60 * 60 * 24 // 24 hour or 1 day
+    })
 
     res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: false, // Set to true in production
-        sameSite: "none",
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-    });
+        httpOnly : true,
+        secure : false,
+        sameSite : "none",
+        maxAge : 1000 * 60 * 60 * 24 * 7 // 7 day
+    })
 
     sendResponse(res, {
-        message: "User logged in successfully",
         success: true,
         statusCode: httpStatus.OK,
-        data: { user, accessToken, refreshToken }
+        message: "User logged in successfully",
+        data: { accessToken, refreshToken }
     });
 });
 
-const refreshToken = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-
+const refreshToken = catchAsync(async (req : Request, res : Response, next: NextFunction) => {
     const refreshToken = req.cookies.refreshToken;
 
     const {accessToken} = await authService.refreshToken(refreshToken);
 
     res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: false, // Set to true in production
+        secure: false,
         sameSite: "none",
-        maxAge: 1000 * 60 * 60 * 24 , // 1 day
-    });
+        maxAge: 1000 * 60 * 60 * 24 // 24 hour or 1 day
+    })
 
     sendResponse(res, {
-        message: "Token refreshed successfully",
-        success: true,
-        statusCode: httpStatus.OK,
-        data: { accessToken }
-    });
-
-});
-
+        success : true,
+        statusCode : httpStatus.OK,
+        message : "Token Refreshed Successfully",
+        data : {
+            accessToken
+        }
+    })
+})
 
 export const authController = {
     loginUser,
     refreshToken
-};
+}

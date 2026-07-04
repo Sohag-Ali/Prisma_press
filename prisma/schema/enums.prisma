@@ -1,6 +1,6 @@
 enum ActiveStatus {
   ACTIVE
-  INACTIVE
+  BLOCKED
 }
 
 enum Role {
@@ -16,12 +16,11 @@ enum PostStatus {
 }
 
 enum CommentStatus {
-  PENDING
   APPROVED
-  REJECTED
+  REJECT
 }
 
-enum SubscriptionStatus {
+enum SubscriptionStatus{
   ACTIVE
   CANCELED
   EXPIRED

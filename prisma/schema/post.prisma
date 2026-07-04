@@ -1,4 +1,4 @@
-model Post {
+model Post {  
   id         String     @id @default(uuid())
   title      String     @db.VarChar(255)
   content    String     @db.Text
@@ -17,6 +17,6 @@ model Post {
 
   comments Comment[]
 
-
+  @@index([authorId])
   @@map("posts")
 }
