@@ -2,5 +2,5 @@ node_modules
 dist
 build
 generated
-.env
 /generated/prisma
+config.bat

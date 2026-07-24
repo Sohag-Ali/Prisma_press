@@ -99,7 +99,12 @@ const getPremiumContent = async (query : IPostQuery) => {
                     password: true
                 }
             },
-            comments: true
+            comments: true,
+            _count:{
+                select:{
+                    comments: true
+                }
+            }
         }
     })
 
